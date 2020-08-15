@@ -29,13 +29,17 @@ def main():
         pygame.draw.circle(screen, (0, 0, 0), (400, 160), 25, 3)  # black outline
         pygame.draw.circle(screen, (0, 0, 0), (398, 162), 7)  # black pupil
 
-        # TODO 1: Draw a nose
+        # DONE 1: Draw a nose
         # Suggestion: color (80,0,0) location (320,245), radius 10
         # API --> pygame.draw.circle(screen, (r,g,b), (x, y), radius, thickness)
 
-        # TODO 2: Draw a mouth
+        pygame.draw.circle(screen, (80 ,0,0), (320,245), 10)
+
+        # DONE 2: Draw a mouth
         # Suggestion: color (0,0,0), x 230, y 320, width 180, height 30
         # API --> pygame.draw.rect(screen, (r,g,b), (x, y, width, height), thickness)
+
+        pygame.draw.rect(screen, (0, 0, 0), (230, 320, 180, 30))
 
         pygame.display.update()
 

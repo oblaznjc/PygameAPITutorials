@@ -111,7 +111,8 @@ def main():
     pygame.init()
     pygame.mixer.music.load("win.mp3")
     screen = pygame.display.set_mode((380, 400))
-    # TODO 1: Create an instance of the ViewController class called view_controller
+    # DONE 1: Create an instance of the ViewController class called view_controller
+    view_controller = ViewController(screen)
 
     # TODO 6: Write test code as needed to develop your model object.
 
@@ -119,11 +120,12 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            # TODO 2: Pass the event to the view_controller
+            # DONE 2: Pass the event to the view_controller
+            view_controller.check_event(event)
 
         screen.fill(pygame.Color("white"))
-        # TODO 3: Draw the view_controller
+        # DONE 3: Draw the view_controller
+        view_controller.draw()
         pygame.display.update()
-
 
 main()

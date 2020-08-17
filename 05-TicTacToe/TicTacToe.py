@@ -29,16 +29,20 @@ def get_xy_position(row, col):
 
 class Game:
     def __init__(self):
-        # TODO 5: Create an empty board, called board
+        # DONE 5: Create an empty board, called board
         #         A list that contains 3 lists, each of those lists has 3 "." values.
         #     - Create a game_state_string set to X's turn
         #     - Create a turn_counter variable set to 0
         #     - Create a game_is_over variable set to False
-        pass
+        self.board = [[".", ".", "."], [".", ".", "."], [".", ".", "."]]
+        self.game_state_string = "X's turn"
+        self.turn_counter = 0
+        self.game_is_over = False
 
     def __repr__(self):
         """ Returns a string that represents the game. """
-        # TODO 7: Use a "".format() command to create a string to shows the board, turn_counter, and game_state_string
+        # DONE 7: Use a "".format() command to create a string to shows the board, turn_counter, and game_state_string
+        return "Board: {} Turn: {} State String: {}".format(self.board, self.turn_counter, self.game_state_string)
 
     def take_turn(self, row, col):
         """Handle the current turn of the player and update board array"""
@@ -77,12 +81,16 @@ class ViewController:
 
     def __init__(self, screen):
         """ Creates the view controller (the Tic-Tac-Toe game you see) """
-        # TODO 4: Initialize the ViewController, as follows:
+        # DONE 4: Initialize the ViewController, as follows:
         #     - Store the screen.
         #     - Create the game model object.
         #     - Create images for the board, X, and O images filenames.
         #  Use instance variables:   screen game board_image x_image o_image
-        pass
+        self.screen = screen
+        self.game = Game()
+        self.board_image = pygame.image.load("board.png")
+        self.x_image = pygame.image.load("x_mark.png")
+        self.o_image = pygame.image.load("o_mark.png")
 
     def check_event(self, event):
         """ Takes actions as necessary based on the current event. """
@@ -114,17 +122,18 @@ def main():
     # DONE 1: Create an instance of the ViewController class called view_controller
     view_controller = ViewController(screen)
 
-    # TODO 6: Write test code as needed to develop your model object.
+    # DONE 6: Write test code as needed to develop your model object.
+    # TODO: Delete later
+    print(view_controller.game)
+
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            # DONE 2: Pass the event to the view_controller
             view_controller.check_event(event)
 
         screen.fill(pygame.Color("white"))
-        # DONE 3: Draw the view_controller
         view_controller.draw()
         pygame.display.update()
 

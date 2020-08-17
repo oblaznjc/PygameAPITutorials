@@ -62,7 +62,7 @@ class Hero:
         #       draw this Hero WITHOUT an umbrella,
         #       otherwise draw this Hero WITH an umbrella.
         current_image = self.image_without_umbrella
-        if time.time() - self.last_hit_time < 0.1:
+        if time.time() - self.last_hit_time < 1:
             current_image = self.image_with_umbrella
         self.screen.blit(current_image, (self.x, self.y))
 
@@ -71,20 +71,20 @@ class Hero:
         # DONE 19: Return True if this Hero is currently colliding with the given Raindrop.
         hero_hit_box = pygame.Rect(self.x, self.y, self.image_with_umbrella.get_width(),
                                    self.image_with_umbrella.get_height())
-        return hero_hit_box.collidepoint((raindrop.x, raindrop.y))
+        return hero_hit_box.collidepoint(raindrop.x, raindrop.y)
 
 
 
 class Cloud:
     def __init__(self, screen, x, y, image_filename):
         """ Creates a Cloud sprite that will produce Raindrop objects.  The cloud will be moving around. """
-        # TODO 24: Initialize this Cloud, as follows:
-        # TODO    - Store the screen.
-        # TODO    - Set the initial position of this Cloud to x and y.
-        # TODO    - Set the image of this Cloud to the given image filename.
-        # TODO    - Create a list for Raindrop objects as an empty list called raindrops.
-        # TODO  Use instance variables:
-        # TODO     screen  x  y  image   raindrops.
+        # DONE 24: Initialize this Cloud, as follows:
+        #     - Store the screen.
+        #     - Set the initial position of this Cloud to x and y.
+        #     - Set the image of this Cloud to the given image filename.
+        #     - Create a list for Raindrop objects as an empty list called raindrops.
+        #   Use instance variables:
+        #      screen  x  y  image   raindrops.
         self.x = x
         self.y = y
         self.screen = screen
@@ -102,8 +102,8 @@ class Cloud:
         #     where the new Raindrop starts at:
         #       - x is a random integer between this Cloud's x and this Cloud's x + 300.
         #       - y is this Cloud's y + 100.
-        new_raindrop = Raindrop(self.screen, random.randint(self.x, self.image.get_width()),
-                                self.y + self.image.get_height() - 8)
+        new_raindrop = Raindrop(self.screen, random.randint(self.x, self.x + self.image.get_width()),
+                                self.y + self.image.get_height() - 20)
         self.raindrops.append(new_raindrop)
 
 def main():
@@ -117,7 +117,7 @@ def main():
     # DONE 2: Make a Clock
     clock = pygame.time.Clock()
     # DONE 7: As a temporary test, make a new Raindrop called test_drop at x=320 y=10
-    test_drop = Raindrop(screen, 320, 10)
+    # test_drop = Raindrop(screen, 320, 10)
 
     # DONE 15: Make a Hero, named mike, with appropriate images, starting at position x=300 y=400.
     mike = Hero(screen, 300, 400, "Mike_umbrella.png", "Mike.png")
@@ -155,16 +155,16 @@ def main():
         screen.fill((255, 255, 255))
 
         # DONE 12: As a temporary test, move test_drop
-        test_drop.move()
+        # test_drop.move()
         # DONE 14: As a temporary test, check if test_drop is off screen, if so reset the y position to 10
-        if test_drop.off_screen():
-            test_drop.y = 10
+        # if test_drop.off_screen():
+        #    test_drop.y = 10
         # DONE 10: As a temporary test, draw test_drop
-        test_drop.draw()
+        # test_drop.draw()
 
         # DONE 20: As a temporary test, check if test_drop is hitting Mike, if so set Mike's last_hit_time
-        if mike.hit_by(test_drop):
-            mike.last_hit_time = time.time()
+        # if mike.hit_by(test_drop):
+        #    mike.last_hit_time = time.time()
         # DONE 22: When you run this test, slow the rain down to a speed of 2 to see the result, then remove that code
 
         # DONE 26: Draw the Cloud.

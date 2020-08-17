@@ -67,7 +67,7 @@ def main():
 main()
 
 
-# Optional challenges (if you finish and want do play a bit more): # TODO: Come back for more later!
+# Optional challenges (if you finish and want do play a bit more): # DONE: Come back for more later!
 #   DONE: After you get 1 ball working make a few balls (ball2, ball3, etc) that start in different places.
 #   DONE: Make each ball a different color
 #   DONE: Make the screen 1000 x 800 to allow your balls more space (what needs to change?)

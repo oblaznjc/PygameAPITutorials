@@ -69,15 +69,15 @@ class Game:
             self.board[row][col] = "O"
             self.game_state_string = "X's turn"
 
-
         # DONE 12: Increment the turn_counter
         self.turn_counter = self.turn_counter + 1
 
         self.check_for_game_over()
 
     def check_for_game_over(self):
-        # TODO 18: If the turn_counter is 9 then the game is over
+        # DONE 18: If the turn_counter is 9 then the game is over
         #      If >=9 update the game_is_over value and set the game_state_string to "Tie Game"
+
         lines = []
         lines.append(self.board[0][0] + self.board[0][1] + self.board[0][2])
         lines.append(self.board[1][0] + self.board[1][1] + self.board[1][2])
@@ -88,9 +88,20 @@ class Game:
         lines.append(self.board[0][0] + self.board[1][1] + self.board[2][2])
         lines.append(self.board[0][2] + self.board[1][1] + self.board[2][0])
 
-        # TODO 19: Use the lines list to determine if there is a winner.
+        if self.turn_counter >= 9:
+            self.game_is_over = True
+            self.game_state_string = "Tie Game!"
+
+        # DONE 19: Use the lines list to determine if there is a winner.
         #    If there is a winner, update the game_state_string, play a sound, and set game_is_over to True.
 
+        for line in lines:
+            if line == "XXX" or line == "OOO":
+                pygame.mixer.music.play() # violation of MVC
+                self.game_is_over = True
+                self.game_state_string = "X Wins!"
+                if line == "OOO":
+                    self.game_state_string = "O Wins!"
 
 # --------------------------- View Controller ---------------------------
 

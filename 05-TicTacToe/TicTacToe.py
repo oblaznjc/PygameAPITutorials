@@ -170,22 +170,6 @@ def main():
     # DONE 1: Create an instance of the ViewController class called view_controller
     view_controller = ViewController(screen)
 
-    """
-    # DONE 6: Write test code as needed to develop your model object.
-    # TODO: Delete later
-    print(view_controller.game)
-    view_controller.game.take_turn(1,1) # X in middle
-    print(view_controller.game)
-    view_controller.game.take_turn(2, 1)  # O in right - middle
-    print(view_controller.game)
-    view_controller.game.take_turn(0, 0)  # X in top left
-    print(view_controller.game)
-    view_controller.game.take_turn(2, 0)  # O in top right
-    print(view_controller.game)
-    view_controller.game.take_turn(2, 2)  # X in bottom right
-    print(view_controller.game)
-    """
-
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -195,5 +179,6 @@ def main():
         screen.fill(pygame.Color("white"))
         view_controller.draw()
         pygame.display.update()
+
 
 main()

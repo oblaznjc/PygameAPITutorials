@@ -111,23 +111,39 @@ class ViewController:
 
     def check_event(self, event):
         """ Takes actions as necessary based on the current event. """
-        # TODO 16: If the event is pygame.MOUSEBUTTONUP
+        # DONE 16: If the event is pygame.MOUSEBUTTONUP
         #     Get the mouse click position as x and y variables
         #     Convert the x and y variables into row and col using get_row_col
         #     Inform the model object about this event
-        # TODO 17: If the event is pygame.KEYDOWN
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            click_x, click_y = pygame.mouse.get_pos()
+            row, col = get_row_col(click_x, click_y)
+            self.game.take_turn(row, col)
+
+        # DONE 17: If the event is pygame.KEYDOWN
         #     Get the pressed_keys
         #     If the key is pygame.K_SPACE, then reset the game.
-        pass
+
+
 
     def draw(self):
         """ Draw the board based on the marked store in the board configuration array """
-        # TODO 13: Blit the board_image onto the screen at the x y position of row=0 col=0
-        # TODO 14: Use a nested loop (via range) to go over all marks of the game.board
+        # DONE 13: Blit the board_image onto the screen at the x y position of row=0 col=0
+        self.screen.blit(self.board_image, get_xy_position(0, 0))
+
+        # DONE 14: Use a nested loop (via range) to go over all marks of the game.board
         #    If the mark is "X", blit an X image at the x y position of row col
         #    If the mark is "O", blit an O image at the x y position of row col
-        # TODO 15: Update the display caption to be the game.game_state_string
-        pass
+        for row in range(3):
+            for col in range(3):
+                mark = self.game.board[row][col]
+                if mark == "X":
+                    self.screen.blit(self.x_image, get_xy_position(row, col))
+                if mark == "O":
+                    self.screen.blit(self.o_image, get_xy_position(row, col))
+
+        # DONE 15: Update the display caption to be the game.game_state_string
+        pygame.display.set_caption(self.game.game_state_string)
 
 # --------------------------- Controller ---------------------------
 
@@ -139,6 +155,7 @@ def main():
     # DONE 1: Create an instance of the ViewController class called view_controller
     view_controller = ViewController(screen)
 
+    """
     # DONE 6: Write test code as needed to develop your model object.
     # TODO: Delete later
     print(view_controller.game)
@@ -152,8 +169,7 @@ def main():
     print(view_controller.game)
     view_controller.game.take_turn(2, 2)  # X in bottom right
     print(view_controller.game)
-
-
+    """
 
     while True:
         for event in pygame.event.get():

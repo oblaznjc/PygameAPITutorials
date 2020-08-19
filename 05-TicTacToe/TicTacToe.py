@@ -123,6 +123,10 @@ class ViewController:
         # DONE 17: If the event is pygame.KEYDOWN
         #     Get the pressed_keys
         #     If the key is pygame.K_SPACE, then reset the game.
+        if event.type == pygame.KEYDOWN:
+            pressed_keys = pygame.key.get_pressed()
+            if pressed_keys[pygame.K_SPACE]:
+                self.game = Game()
 
 
 

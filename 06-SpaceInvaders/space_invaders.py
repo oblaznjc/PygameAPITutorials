@@ -117,6 +117,9 @@ class EnemyFleet:
             if self.badguys[k].is_dead:
                 del self.badguys[k]
 
+class Scoreboard:
+    def __init__(self, screen, ):
+        self.screen = sc
 
 def main():
     pygame.init()
@@ -124,10 +127,13 @@ def main():
     pygame.display.set_caption("SPACE INVADERS!")
     screen = pygame.display.set_mode((640, 650))
 
-    enemy_rows = 3
+    is_game_over = False
+    enemy_rows = 3 #TODO: put back to 3
     enemy_fleet = EnemyFleet(screen, enemy_rows)
 
     fighter = Fighter(screen, screen.get_width() // 2 - 50, screen.get_height() - 60)
+
+    game_over_image = pygame.image.load("gameover.png")
 
     while True:
         clock.tick(60)
@@ -135,32 +141,37 @@ def main():
             pressed_keys = pygame.key.get_pressed()
             # DONE 5: If the event type is KEYDOWN and pressed_keys[pygame.K_SPACE] is True, then fire a missile
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
-                fighter.fire()
+                fighter.fire( )
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        # TODO: Delete supergun
-        if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
-            fighter.fire()
-
         screen.fill((0, 0, 0))
-        pressed_keys = pygame.key.get_pressed()
+
+        # Draw before game over
+        enemy_fleet.draw()
+        fighter.draw()
+        for missile in fighter.missiles:
+            missile.draw()
+
+
+        if is_game_over:
+            screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
+                                          screen.get_height() // 2 - game_over_image.get_height() // 2))
+            pygame.display.update()
+            continue
 
         # Move fighter
+        pressed_keys = pygame.key.get_pressed()
         speed = 5
         if pressed_keys[pygame.K_LEFT] and fighter.x > -fighter.image.get_width() // 2 + fighter.image.get_width() // 2:
             fighter.x -= speed
         if pressed_keys[pygame.K_RIGHT] and fighter.x < screen.get_width() - fighter.image.get_width():
             fighter.x += speed
 
-        fighter.draw()
-
         enemy_fleet.move()
-        enemy_fleet.draw()
 
         for missile in fighter.missiles:
             missile.move()
-            missile.draw()
 
         for badguy in enemy_fleet.badguys:
             for missile in fighter.missiles:
@@ -176,10 +187,13 @@ def main():
             enemy_rows += 1
             enemy_fleet = EnemyFleet(screen, enemy_rows)
 
-        # TODO 22: Check for your death.  Figure out what needs to happen.
+        # DONE 22: Check for your death.  Figure out what needs to happen.
         # Hints: Check if a Badguy gets a y value greater than 545
         #    If that happens set a variable (game_over) as appropriate
         #    If the game is over, show the gameover.png image at (170, 200)
+        for badguy in enemy_fleet.badguys:
+            if badguy.y > screen.get_height() - fighter.image.get_height() - badguy.image.get_height():
+                is_game_over = True
 
         # TODO 23: Create a Scoreboard class (from scratch)
         # Hints: Instance variables: screen, score, and font (size 30)
@@ -193,3 +207,6 @@ def main():
 
 
 main()
+
+# TODO: optionally  allow for full motion of fighter, and of the left-riht badguy
+# add hit box only code and recurring fighter

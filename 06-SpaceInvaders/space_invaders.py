@@ -72,8 +72,9 @@ class Badguy:
         self.x += self.speed
 
     def turn(self):
+        # turns a badguy if called
         self.speed = -self.speed
-        self.y = self.y + self.image.get_height()
+        self.y = self.y + self.image.get_height() // 2
 
     def draw(self):
         # Draw this Badguy, using its image at its current (x, y) position.
@@ -86,8 +87,6 @@ class Badguy:
         return hitbox.collidepoint(missile.x, missile.y)
 
 
-
-
 class EnemyFleet:
     def __init__(self, screen, enemy_rows):
         # Already done.  Prepares the list of Badguys.
@@ -95,7 +94,7 @@ class EnemyFleet:
         self.badguys = []
         for j in range(enemy_rows):
             for k in range(6):  # Maximum 7 due to newly added turn feature
-                self.badguys.append(Badguy(screen, 80 * (k + 1), 50 * j + 20, enemy_rows)) #Todo: delete + 1
+                self.badguys.append(Badguy(screen, 80 * k, 50 * j + 20, enemy_rows))
         self.explosion_sound = pygame.mixer.Sound("explosion.wav")
         self.win_sound = pygame.mixer.Sound("win.wav")
 
@@ -114,6 +113,7 @@ class EnemyFleet:
             badguy.move()
 
     def turn(self):
+        # Checks if any badguys reach screen border
         for badguy in self.badguys:
             if badguy.x < 0 or badguy.x + badguy.image.get_width() > self.screen.get_width():
                 return True
@@ -175,10 +175,6 @@ def main():
             missile.draw()
         scoreboard.draw()
 
-        if enemy_fleet.turn():
-            for badguy in enemy_fleet.badguys:
-                badguy.turn()
-
         if is_game_over:
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
                                           screen.get_height() // 2 - game_over_image.get_height() // 2))
@@ -193,7 +189,11 @@ def main():
         if pressed_keys[pygame.K_RIGHT] and fighter.x < screen.get_width() - fighter.image.get_width():
             fighter.x += speed
 
+        # Move bad guys and (newly added) turn feature allows for full screen movement of bad guys!
         enemy_fleet.move()
+        if enemy_fleet.turn():
+            for badguy in enemy_fleet.badguys:
+                badguy.turn()
 
         for missile in fighter.missiles:
             missile.move()
@@ -227,5 +227,3 @@ def main():
 
 
 main()
-
-# TODO: optionally  allow for full motion in left-rgiht badguy

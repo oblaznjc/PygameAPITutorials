@@ -117,9 +117,18 @@ class EnemyFleet:
             if self.badguys[k].is_dead:
                 del self.badguys[k]
 
+
 class Scoreboard:
     def __init__(self, screen, ):
-        self.screen = sc
+        self.screen = screen
+        self.score = 0
+        self.font = pygame.font.Font(None, 30)
+
+    def draw(self):
+        score_string = "Score: {}".format(self.score)
+        score_image = self.font.render(score_string, True, (255, 255, 255))
+        self.screen.blit(score_image, (5, 5))
+
 
 def main():
     pygame.init()
@@ -130,10 +139,9 @@ def main():
     is_game_over = False
     enemy_rows = 3 #TODO: put back to 3
     enemy_fleet = EnemyFleet(screen, enemy_rows)
-
     fighter = Fighter(screen, screen.get_width() // 2 - 50, screen.get_height() - 60)
-
     game_over_image = pygame.image.load("gameover.png")
+    scoreboard = Scoreboard(screen)
 
     while True:
         clock.tick(60)
@@ -147,12 +155,12 @@ def main():
 
         screen.fill((0, 0, 0))
 
-        # Draw before game over
+        # Draw these before game over
         enemy_fleet.draw()
         fighter.draw()
         for missile in fighter.missiles:
             missile.draw()
-
+        scoreboard.draw()
 
         if is_game_over:
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
@@ -176,9 +184,9 @@ def main():
         for badguy in enemy_fleet.badguys:
             for missile in fighter.missiles:
                 if badguy.hit_by(missile):
-                    # TODO: score and sound
                     badguy.is_dead = True
                     missile.has_exploded = True
+                    scoreboard.score += 100
 
         fighter.remove_exploded_missiles()
         enemy_fleet.remove_dead_badguys()
@@ -195,10 +203,6 @@ def main():
             if badguy.y > screen.get_height() - fighter.image.get_height() - badguy.image.get_height():
                 is_game_over = True
 
-        # TODO 23: Create a Scoreboard class (from scratch)
-        # Hints: Instance variables: screen, score, and font (size 30)
-        #    Methods: draw (and __init__)
-        # Create a scoreboard and draw it at location 5, 5
         # When a Badguy is killed add 100 points to the scoreboard.score
 
         # TODO 24: Optional extra - Add sound effects!

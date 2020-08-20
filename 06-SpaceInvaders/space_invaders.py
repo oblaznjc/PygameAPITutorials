@@ -32,6 +32,7 @@ class Fighter:
         self.image = pygame.image.load("fighter.png")
         self.image.set_colorkey((255, 255, 255))
         self.missiles = []
+        self.pew_sound = pygame.mixer.Sound("pew.wav")
 
     def draw(self):
         # Draw this Fighter, using its image at its current (x, y) position.
@@ -43,6 +44,7 @@ class Fighter:
         new_missile = Missile(self.screen, self.x + self.image.get_width() // 2,
                               self.screen.get_height() - self.image.get_height() - 1)
         self.missiles.append(new_missile)
+        self.pew_sound.play()
 
     def remove_exploded_missiles(self):
         # Already complete
@@ -68,9 +70,10 @@ class Badguy:
         # Move 2 units in the current direction.
         # Switch direction if this Badguy's position is more than 100 pixels from its original position.
         self.x += self.speed
-        if abs(self.x - self.original_x) > 100:
-            self.speed = -self.speed
-            self.y = self.y + self.image.get_height()
+
+    def turn(self):
+        self.speed = -self.speed
+        self.y = self.y + self.image.get_height()
 
     def draw(self):
         # Draw this Badguy, using its image at its current (x, y) position.
@@ -88,17 +91,20 @@ class Badguy:
 class EnemyFleet:
     def __init__(self, screen, enemy_rows):
         # Already done.  Prepares the list of Badguys.
+        self.screen = screen
         self.badguys = []
         for j in range(enemy_rows):
-            for k in range(8):
-                self.badguys.append(Badguy(screen, 80 * k, 50 * j + 20, enemy_rows))
-
+            for k in range(6):  # Maximum 7 due to newly added turn feature
+                self.badguys.append(Badguy(screen, 80 * (k + 1), 50 * j + 20, enemy_rows)) #Todo: delete + 1
+        self.explosion_sound = pygame.mixer.Sound("explosion.wav")
+        self.win_sound = pygame.mixer.Sound("win.wav")
 
     @property
     def is_defeated(self):
         # Return True if the number of badguys in this Enemy Fleet is 0,
         # otherwise return False.
         if len(self.badguys) == 0:
+            self.win_sound.play()
             return True
         return False
 
@@ -106,6 +112,11 @@ class EnemyFleet:
         # Make each badguy in this EnemyFleet move.
         for badguy in self.badguys:
             badguy.move()
+
+    def turn(self):
+        for badguy in self.badguys:
+            if badguy.x < 0 or badguy.x + badguy.image.get_width() > self.screen.get_width():
+                return True
 
     def draw(self):
         # Make each badguy in this EnemyFleet draw itself.
@@ -116,6 +127,7 @@ class EnemyFleet:
         for k in range(len(self.badguys) - 1, -1, -1):
             if self.badguys[k].is_dead:
                 del self.badguys[k]
+                self.explosion_sound.play()
 
 
 class Scoreboard:
@@ -137,11 +149,12 @@ def main():
     screen = pygame.display.set_mode((640, 650))
 
     is_game_over = False
-    enemy_rows = 3 #TODO: put back to 3
+    enemy_rows = 2
     enemy_fleet = EnemyFleet(screen, enemy_rows)
     fighter = Fighter(screen, screen.get_width() // 2 - 50, screen.get_height() - 60)
     game_over_image = pygame.image.load("gameover.png")
     scoreboard = Scoreboard(screen)
+    lose_sound = pygame.mixer.Sound("lose.wav")
 
     while True:
         clock.tick(60)
@@ -161,6 +174,10 @@ def main():
         for missile in fighter.missiles:
             missile.draw()
         scoreboard.draw()
+
+        if enemy_fleet.turn():
+            for badguy in enemy_fleet.badguys:
+                badguy.turn()
 
         if is_game_over:
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
@@ -202,15 +219,13 @@ def main():
         for badguy in enemy_fleet.badguys:
             if badguy.y > screen.get_height() - fighter.image.get_height() - badguy.image.get_height():
                 is_game_over = True
+                lose_sound.play()
 
         # When a Badguy is killed add 100 points to the scoreboard.score
-
-        # TODO 24: Optional extra - Add sound effects!
 
         pygame.display.update()
 
 
 main()
 
-# TODO: optionally  allow for full motion of fighter, and of the left-riht badguy
-# add hit box only code and recurring fighter
+# TODO: optionally  allow for full motion in left-rgiht badguy

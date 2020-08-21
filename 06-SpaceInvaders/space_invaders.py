@@ -10,7 +10,6 @@ class Missile:
         self.y = y
         self.has_exploded = False
 
-
     def move(self):
         # Make self.y 5 smaller than it was (which will cause the Missile to move UP).
         self.y -= 5
@@ -213,10 +212,6 @@ def main():
             enemy_rows += 1
             enemy_fleet = EnemyFleet(screen, enemy_rows)
 
-        # DONE 22: Check for your death.  Figure out what needs to happen.
-        # Hints: Check if a Badguy gets a y value greater than 545
-        #    If that happens set a variable (game_over) as appropriate
-        #    If the game is over, show the gameover.png image at (170, 200)
         for badguy in enemy_fleet.badguys:
             if badguy.y > screen.get_height() - fighter.image.get_height() - badguy.image.get_height():
                 is_game_over = True

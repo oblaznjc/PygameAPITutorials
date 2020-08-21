@@ -160,11 +160,12 @@ def main():
         clock.tick(60)
         for event in pygame.event.get():
             pressed_keys = pygame.key.get_pressed()
+            if event.type == pygame.QUIT:
+                sys.exit()
             # DONE 5: If the event type is KEYDOWN and pressed_keys[pygame.K_SPACE] is True, then fire a missile
         if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
             fighter.fire( )
-            if event.type == pygame.QUIT:
-                sys.exit()
+
 
         screen.fill((0, 0, 0))
 

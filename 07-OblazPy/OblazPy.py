@@ -67,13 +67,12 @@ class Scoreboard:
         self.font = pygame.font.Font(None, 30)
 
     def draw(self):
-        self.score = round(time.time() - self.start, 3)
         score_string = "Time: {}".format(self.score)
         score_image = self.font.render(score_string, True, (255, 255, 255))
         self.screen.blit(score_image, (100, 100))
 
-
-class
+    def update(self):
+        self.score = round(time.time() - self.start, 3)
 
 
 class LineParticle:
@@ -113,6 +112,7 @@ def main():
     clock = pygame.time.Clock()
     time_threshold = 0.1
     is_game_over = False
+    game_over_image = pygame.image.load("gameover.png")
 
     # construct ball and line list
     line_list = []
@@ -129,9 +129,12 @@ def main():
 
         #Draw these before game is over  # TODO: think
         scoreboard.draw()
+        ball.draw()
+        for particle in line_list:
+            particle.draw()
 
 
-        if is_game_over: #TODO: image
+        if is_game_over:
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2, 
                                             screen.get_height() // 2 - game_over_image.get_height() // 2))
             pygame.display.update()
@@ -157,16 +160,16 @@ def main():
 
         # Draw and move line up
         for particle in line_list:
-            particle.draw()
             particle.move()
 
         # Draw and move ball
-        ball.draw()
         ball.move()
 
         # game over
-        if ball.y > screen.get_height():
+        if ball.y > screen.get_height() or ball.y < 0:
             is_game_over = True
+
+        scoreboard.update()
 
         pygame.display.update()
 

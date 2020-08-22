@@ -75,6 +75,10 @@ class Scoreboard:
         self.score = round(time.time() - self.start, 3)
 
 
+class Leaderboard:
+    pass
+
+
 class LineParticle:
     def __init__(self, screen, x, y):
         self.screen = screen
@@ -105,38 +109,31 @@ class Pen():
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), 5)
 
 
-class SetupScreen:
-    def __init__(self, state):
-        # Boilerplate code
-        pygame.init()
-        self.screen = pygame.display.set_mode((1000, 1000))
-        self.clock = pygame.time.Clock()
-        is_game_waiting_to_start = False
-        is_game_over = False
-        game_over_image = pygame.image.load("gameover.png")
-
-
-        while state:
+def setup(first_round_state):
+    if first_round_state:
+        while first_round_state:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
                 pressed_keys = pygame.mouse.get_pressed()
                 if pressed_keys == (1, 0, 0):
-                    state = False
-
+                    first_round_state = False
 
             pygame.display.update()
+    else:
+       pass
 
 
-def game_loop():
+def main():
     # Boilerplate code
-    pygame.init()
-    clock = pygame.time.Clock()
-    is_game_waiting_to_start = True
-    is_game_over = False
     game_over_image = pygame.image.load("gameover.png")
 
+    pygame.init()
+    screen = pygame.display.set_mode((1000, 1000))
+    clock = pygame.time.Clock()
+    round_number = 1
+    is_game_over = False
 
     # construct ball and line list
     line_list = []
@@ -145,10 +142,19 @@ def game_loop():
     scoreboard = Scoreboard(screen, time.time())
     scoreboard.draw()
 
-    setup(is_game_waiting_to_start)
+    while round_number == 1:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            pressed_keys = pygame.mouse.get_pressed()
+            if pressed_keys == (1, 0, 0):
+                round_number += 1
+                scoreboard = Scoreboard(screen, time.time())
+
+        pygame.display.update()
 
     # introduction screen and game is over screen
-    is_game_over = False
 
     while True:
         screen.fill((0, 0, 0))  # black
@@ -158,21 +164,27 @@ def game_loop():
             if event.type == pygame.QUIT:
                 sys.exit()
 
+        # Check for game over
+        if ball.y > screen.get_height() or ball.y < 0:
+            is_game_over = True
+
         # Draw these before game is over
         scoreboard.draw()
         ball.draw()
         for particle in line_list:
             particle.draw()
 
-        if is_game_over:
-            screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
-                                            screen.get_height() // 2 - game_over_image.get_height() // 2))
-            pygame.display.update()
-            setup
-            continue
-
         pen = Pen(screen)
         pen.draw()
+
+        if is_game_over:
+            screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
+                                          screen.get_height() // 2 - game_over_image.get_height() // 2))
+            pygame.display.update()
+            pressed_keys = pygame.mouse.get_pressed()
+            if pressed_keys == (1, 0, 0):
+                main()
+            continue
 
         # construct line when mouse clicked
         pressed_keys = pygame.mouse.get_pressed()
@@ -192,16 +204,9 @@ def game_loop():
 
         ball.move()
 
-        # Check for game over
-        if ball.y > screen.get_height() or ball.y < 0:
-            is_game_over = True
-
         scoreboard.update()
 
         pygame.display.update()
 
 
-def main():
-    is_game_waiting_to_start = True
-    Setup(is_game_waiting_to_start)
-    game_loop()
+main()

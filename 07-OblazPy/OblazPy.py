@@ -2,51 +2,48 @@ import pygame
 import sys
 import math
 
+# --------------------------- Conversion helper functions ---------------------------
+# https://stackoverflow.com/questions/35211114/2d-elastic-ball-collision-physics
 
-# Conversions
-def angle_to_speed(speed, angle):
-    speed_x = math.cos(angle) * speed
-    speed_y = math.sin(angle) * speed
-    return speed_x, speed_y
+def unit_normal_vector_between(ball, particle):
+    ballx_to_particlex = ball.x - particle.x
+    bally_to_particley = ball.y - particle.y
+    norm = math.sqrt(ballx_to_particlex ** 2 + bally_to_particley ** 2)
+    unit_normal_vector_x = ballx_to_particlex / norm
+    unit_normal_vector_y = bally_to_particley / norm
+    return unit_normal_vector_x, unit_normal_vector_y
 
-
-def collision(ball, particle):
-    pass
-
-
-def ball_line_angle(ball, line):
-    pass
 
 class Ball:
     def __init__(self, screen, x, y):
         self.screen = screen
         self.x = x
         self.y = y
-        self.angle = math.pi * 3 / 2
+        self.angle = 270
         self.radius = 30
         self.diameter = self.radius * 2
         self.color = (0, 255, 255) # green
-        self.speed = 5
+        self.speed_x = 0
+        self.speed_y = -3  # down 3
+        self.last_hit_time = 0
+        self.mass = 1
 
     def draw(self):
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.radius)
 
     def move(self):
-        speed_x, speed_y = angle_to_speed(self.speed, self.angle)
-        self.y = self.y - math.floor(speed_y) # TODO: Check + - ?
-        self.x = self.x - math.floor(speed_x)
+        self.y = self.y - self.speed_y
+        self.x = self.x - self.speed_x
 
     def bounce_off(self, particle):
-        collision(self, particle)
-        self.speed = -self.speed
+        unit_normal_vector = unit_normal_vector_between(self, particle)
+        print(unit_normal_vector)
+        self.speed_x, self.speed_y = unit_normal_vector
 
-    """
+
     def hit(self, particle):
-        hitbox = pygame.Rect(self.x - self.radius, self.y - self.radius, self.diameter, self.diameter)
-        pygame.draw.rect(self.screen, self.color,
-                         (self.x - self.radius, self.y - self.radius, self.diameter, self.diameter))
-        return hitbox.collidepoint(particle.x, particle.y)
-    """
+        distance = math.sqrt((self.x - particle.x) ** 2 + (self.y - particle.y) ** 2)
+        return distance < self.radius
 
 
 class Balls:
@@ -60,20 +57,18 @@ class LineParticle:
         self.x = x
         self.y = y
         self.color = (0, 255, 0)
-        self.radius = 2
+        self.radius = 5
         self.diameter = self.radius * 2
+        self.speed = 0
+        self.mass = math.inf  # TODO: check if 100 is better
 
     def draw(self):
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.radius)
 
-    def hit(self, particle):
-        hitbox = pygame.Rect(self.x - self.radius, self.y - self.radius, self.diameter, self.diameter)
-        pygame.draw.rect(self.screen, self.color,
-                         (self.x - self.radius, self.y - self.radius, self.diameter, self.diameter))
-        return hitbox.collidepoint(particle.x, particle.y)
-
     def move(self):
-        pass
+        self.y = self.y - self.speed
+
+
 
 
 class Pen():
@@ -88,24 +83,21 @@ class Pen():
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), 5)
 
 
-
 def main():
     # Boilerplate code
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
     clock = pygame.time.Clock()
+    time_threshold = 0.1
 
     # construct ball and line list
     line_list = []
-    ball_list = []
 
     ball = Ball(screen, screen.get_width() // 2, 10)
-    ball_list.append(ball)
-
 
     while True:
         screen.fill((0, 0, 0))  # black
-        clock.tick(60)  # sets clock speed to 60 fps
+        clock.tick(120)  # sets clock speed to 60 fps
         pen = Pen(screen)
         pen.draw()
 
@@ -114,15 +106,18 @@ def main():
                 sys.exit()
         # construct line when clicked
         pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[pygame.K_SPACE]:
-            particle = LineParticle(screen,pen.x, pen.y)
+        if pressed_keys[pygame.K_SPACE] and not ball.hit(pen):
+            particle = LineParticle(screen, pen.x, pen.y)
             particle.draw()
             line_list.append(particle)
 
-        for ball in ball_list:
-            for particle in line_list:
-                if particle.hit(ball):
-                    ball.bounce_off(particle)
+        # if time.time() - ball.last_hit_time > time_threshold:
+        for particle in line_list:
+            if ball.hit(particle):
+                ball.bounce_off(particle)
+                # ball.last_hit_time = time.time()
+                break
+
 
         # Draw and move line up
         for particle in line_list:
@@ -130,9 +125,8 @@ def main():
             particle.move()
 
         # Draw and move ball
-        for ball in ball_list:
-            ball.draw()
-            ball.move()
+        ball.draw()
+        ball.move()
 
         pygame.display.update()
 

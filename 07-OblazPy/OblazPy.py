@@ -29,6 +29,7 @@ class Ball:
         self.last_hit_time = 0
         self.mass = 1
         self.speed = 50
+        self.sound = pygame.mixer.Sound("bounce.wav")
 
     def draw(self):
         pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.radius)
@@ -50,6 +51,8 @@ class Ball:
 
     def hit(self, particle):
         distance = math.sqrt((self.x - particle.x) ** 2 + (self.y - particle.y) ** 2)
+        if distance < self.radius:
+            self.sound.play()
         return distance < self.radius
 
     def wrap(self):
@@ -64,19 +67,58 @@ class Scoreboard:
         self.screen = screen
         self.start = start_time
         self.score = 0
-        self.font = pygame.font.Font(None, 30)
+        self.font = pygame.font.SysFont('bahnschrift', 30)
 
     def draw(self):
         score_string = "Time: {}".format(self.score)
         score_image = self.font.render(score_string, True, (255, 255, 255))
-        self.screen.blit(score_image, (100, 100))
+        self.screen.blit(score_image, (20, 20))
 
     def update(self):
         self.score = round(time.time() - self.start, 3)
 
 
 class Leaderboard:
-    pass
+    def __init__(self, screen):
+        self.all_scores = [0]
+        self.screen = screen
+
+    def add_score(self, score):
+        self.all_scores.append(score)
+
+    def high_score(self):
+        return max(self.all_scores)
+
+    def draw(self):
+        font = pygame.font.SysFont('bahnschrift', 30)
+        score_string = "Best: {}".format(self.high_score())
+        score_image = font.render(score_string, True, (255, 255, 255))
+        self.screen.blit(score_image, (20, 60))
+
+
+class Laser:
+    def __init__(self, screen, y):
+        self.screen = screen
+        self.color = (255, 0, 0)
+        self.start_x = 0
+        self.end_x = screen.get_width()
+        self.y = y
+        self.sound = pygame.mixer.Sound("laser_death.wav")
+
+    def draw(self):
+        pygame.draw.line(self.screen, self.color, (self.start_x, self.y), (self.end_x, self.y), 4)
+
+    def top_hit(self, ball):
+        if self.y + ball.radius > ball.y:
+            self.sound.play()
+            return True
+        return False
+
+    def bot_hit(self, ball):
+        if self.y - ball.radius < ball.y:
+            self.sound.play()
+            return True
+        return False
 
 
 class LineParticle:
@@ -85,7 +127,7 @@ class LineParticle:
         self.x = x
         self.y = y
         self.color = (0, 255, 0)
-        self.radius = 5
+        self.radius = 3
         self.diameter = self.radius * 2
         self.speed = 1
         self.mass = math.inf  # TODO: check if 100 is better
@@ -96,94 +138,117 @@ class LineParticle:
     def move(self):
         self.y = self.y - self.speed
 
+    """
+    def increase_speed(self, score):
+        self.speed = math.ceil(score / 10)
+    """
 
-class Pen():
+class Pen:
     """ moves a draw dot on the screen, following the mouse"""
-    def __init__(self, screen):
+    def __init__(self, screen, radius=5):
         pos = pygame.mouse.get_pos()
         self.x, self.y = pygame.mouse.get_pos()
         self.screen = screen
         self.color = (255, 0, 255)
+        self.radius = radius
 
     def draw(self):
-        pygame.draw.circle(self.screen, self.color, (self.x, self.y), 5)
+        pygame.draw.circle(self.screen, self.color, (self.x, self.y), self.radius)
+
+class Eraser:
+    def __init__(self):
+        pass
+
+class Freeze:
+    def __init__(self, screen, x, y):
+        pass
 
 
-def setup(first_round_state):
-    if first_round_state:
-        while first_round_state:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                pressed_keys = pygame.mouse.get_pressed()
-                if pressed_keys == (1, 0, 0):
-                    first_round_state = False
-
-            pygame.display.update()
-    else:
-       pass
-
-
-def main():
+def game_loop(screen, scoreboard, leaderboard, clock, font):
     # Boilerplate code
-    game_over_image = pygame.image.load("gameover.png")
 
-    pygame.init()
-    screen = pygame.display.set_mode((1000, 1000))
-    clock = pygame.time.Clock()
-    round_number = 1
+   # load images
+    game_over_image = pygame.image.load("gameover.png")
+    wait_to_start = True
     is_game_over = False
 
-    # construct ball and line list
+    # construct ball, laser and line list
+    top_laser = Laser(screen, 20)
+    bot_laser = Laser(screen, screen.get_height() - 20)
     line_list = []
-    ball = Ball(screen, screen.get_width() // 2, 50)
+    ball = Ball(screen, screen.get_width() // 2, 60)
     ball.draw()
-    scoreboard = Scoreboard(screen, time.time())
     scoreboard.draw()
+    leaderboard.draw()
+    top_laser.draw()
+    bot_laser.draw()
 
-    while round_number == 1:
+    # wait for mouse click to start game
+    while wait_to_start:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
             pressed_keys = pygame.mouse.get_pressed()
             if pressed_keys == (1, 0, 0):
-                round_number += 1
                 scoreboard = Scoreboard(screen, time.time())
-
+                wait_to_start = False
         pygame.display.update()
 
     # introduction screen and game is over screen
-
     while True:
         screen.fill((0, 0, 0))  # black
-        clock.tick(120)  # sets clock speed to 60 fps
+        clock.tick(120)  # sets clock speed to 120 fps
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        # Check for game over
-        if ball.y > screen.get_height() or ball.y < 0:
-            is_game_over = True
+        #TODO: implement incremental level up
+        """
+        # check for level up 
+        for particle in line_list:
+            particle.increase_speed(scoreboard.score)
+        """
 
         # Draw these before game is over
         scoreboard.draw()
+        leaderboard.draw()
         ball.draw()
         for particle in line_list:
             particle.draw()
-
+        top_laser.draw()
+        bot_laser.draw()
         pen = Pen(screen)
         pen.draw()
 
+        game_over_loops = 0
         if is_game_over:
+            game_over_loops += 1
+
+            # draw game over image
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
                                           screen.get_height() // 2 - game_over_image.get_height() // 2))
-            pygame.display.update()
+
+            # check for restart click
             pressed_keys = pygame.mouse.get_pressed()
-            if pressed_keys == (1, 0, 0):
-                main()
+            position_x, position_y = pygame.mouse.get_pos()
+            hitbox = pygame.Rect(screen.get_width() // 2 - game_over_image.get_width() // 2,
+                                 screen.get_height() // 2 - game_over_image.get_height() // 2,
+                                 game_over_image.get_width(),
+                                 game_over_image.get_height())
+            score_image = font.render(str(scoreboard.score), True, (255, 255, 255))
+            high_score_image = font.render("NEW HIGH SCORE!", True, (255, 255, 255))
+            screen.blit(score_image, (screen.get_width() // 2 - score_image.get_width() // 2,
+                                      screen.get_height() // 2 - score_image.get_height() // 2 + 10))
+            if scoreboard.score == leaderboard.high_score() and game_over_loops > 2: #TODO: flashing
+                screen.blit(high_score_image, (screen.get_width() // 2 - high_score_image.get_width() // 2,
+                                               screen.get_height() // 2 - high_score_image.get_height() // 2 - 200))
+
+            pygame.display.update()
+            if pressed_keys == (1, 0, 0) and hitbox.collidepoint(position_x, position_y):
+                screen.fill((0, 0, 0))
+                game_loop(screen, scoreboard, leaderboard, clock, font)
             continue
 
         # construct line when mouse clicked
@@ -202,11 +267,33 @@ def main():
         for particle in line_list:
             particle.move()
 
-        ball.move()
+        for k in range(len(line_list) - 1, -1, -1):
+            if line_list[k].y < top_laser.y:
+                del line_list[k]
 
+        ball.move()
         scoreboard.update()
+
+        # Check for game over
+        if top_laser.top_hit(ball) or bot_laser.bot_hit(ball):
+            is_game_over = True
+            leaderboard.add_score(scoreboard.score)
 
         pygame.display.update()
 
+
+def main():
+    pygame.init()
+    pygame.display.set_caption("LASER HATER!")
+    screen = pygame.display.set_mode((800, 800))
+    leaderboard = Leaderboard(screen)
+    clock = pygame.time.Clock()
+    scoreboard = Scoreboard(screen, time.time())
+    pygame.mouse.set_cursor(*pygame.cursors.ball)
+    font = pygame.font.SysFont('bahnschrift', 90)
+    pygame.mixer.music.load('background.wav')
+    pygame.mixer.music.play(999)
+
+    game_loop(screen, scoreboard, leaderboard, clock, font)
 
 main()

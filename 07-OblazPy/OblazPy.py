@@ -187,7 +187,7 @@ class Eraser:
     """ Erases the entire screen"""
     def __init__(self, screen, lines):
         self.screen = screen
-        self.color = (255, 255, 0) # TODO: yellow
+        self.color = (255, 255, 0)
         self.radius = 1000
         self.lines = lines
 
@@ -238,9 +238,8 @@ class BonusList:
                 del self.live_list[k]
                 break
 
-    def use_bonus(self, lines): # TODO
+    def use_bonus(self, lines):
         if len(self.collected_list) > 0:
-            self.screen.fill((255, 255, 0))
             lines.erase_all()
             k = self.collected_list[0]
             self.collected_list.remove(k)
@@ -265,16 +264,11 @@ class NewBonus:
 
     def collected(self, ball):
         hitbox = pygame.Rect(self.x, self.y, self.side_length, self.side_length)
-        return hitbox.collidepoint(ball.x, ball.y)
-        #ballbox = pygame.Rect(ball.x - ball.radius, ball.y - ball.radius, ball.diameter, ball.diameter)
-        #return hitbox.colliderect(ballbox) # TODO : rect
+        ballbox = pygame.Rect(ball.x - ball.radius, ball.y - ball.radius, ball.diameter, ball.diameter)
+        return hitbox.colliderect(ballbox)
 
 
-
-
-
-
-def game_loop(screen, scoreboard, leaderboard, clock, font):
+def game_loop(screen, leaderboard, clock, font):
     # load images and booleans
     game_over_image = pygame.image.load("gameover.png")
     wait_to_start = True
@@ -283,6 +277,7 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
     level = 1
 
     # construct opening screen (lasers, ball, score and leader board)
+    scoreboard = Scoreboard(screen, time.time())
     top_laser = Laser(screen, 20)
     bot_laser = Laser(screen, screen.get_height() - 20)
     ball = Ball(screen, screen.get_width() // 2, 60)
@@ -318,9 +313,10 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
             if event.type == pygame.QUIT:
                 sys.exit()
 
-            # Use the first bonus you have in the list
+            # Use a bonus you have in the list
             pressed_keys = pygame.key.get_pressed()
             if pressed_keys[pygame.K_SPACE] and (time.time() - time_of_bonus > 1):
+                screen.fill((255, 255, 0))
                 bonus_list.use_bonus(lines)
                 time_of_bonus = time.time()
                 break
@@ -363,7 +359,7 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
                                  game_over_image.get_height())
             if pressed_keys == (1, 0, 0) and hitbox.collidepoint(position_x, position_y):
                 screen.fill((0, 0, 0))
-                game_loop(screen, scoreboard, leaderboard, clock, font)
+                game_loop(screen, leaderboard, clock, font)
 
             pygame.display.update()
             continue
@@ -387,12 +383,11 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
         bonus_list.move()
 
         # check for level up
-        new_level = math.ceil(scoreboard.score / 2) #TODO: fix time
+        new_level = math.ceil(scoreboard.score / 5)
         if level < new_level:
             bonus = NewBonus(screen)
             bonus_list.add_live(bonus)
             level = new_level
-            print("newlevel")
 
         # Check for game over
         if top_laser.top_hit(ball) or bot_laser.bot_hit(ball):
@@ -413,11 +408,13 @@ def main():
     font = pygame.font.SysFont('bahnschrift', 90)
     pygame.mixer.music.load('background.wav')
     pygame.mixer.music.play(999)
-    game_over_image = pygame.image.load("gameover.png")
+    game_over_image = pygame.image.load("newgame.png")
+    lines = Lines()
 
     # draw opening page
     while True:
         screen.fill((0, 0, 0))  # black
+        clock.tick(120)  # sets clock speed to 120 fps
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -433,6 +430,16 @@ def main():
         leaderboard.draw()
         top_laser.draw()
         bot_laser.draw()
+        pen = Pen(screen)
+        pen.draw()
+        lines.draw()
+
+        # construct line when mouse clicked
+        pressed_keys = pygame.mouse.get_pressed()
+        if pressed_keys == (1, 0, 0) and not ball.hit(pen):
+            particle = LineParticle(screen, pen.x, pen.y)
+            particle.draw()
+            lines.add(particle)
 
         # draw image and check for start game click
         screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
@@ -451,7 +458,7 @@ def main():
 
         pygame.display.update()
 
-    game_loop(screen, scoreboard, leaderboard, clock, font)
+    game_loop(screen, leaderboard, clock, font)
 
 
 main()

@@ -226,24 +226,24 @@ class BonusList:
         for k in range(len(self.collected_list)):
             pygame.draw.rect(self.screen, self.color, (k * self.bar_width, 0, self.bar_width - 1, 18))
 
-    def check_hit(self):
+    def check_for_hit(self, ball):
         for bonus in self.live_list:
-            bonus.collected
-
+            if bonus.collected(ball):
+                self.convert_live_to_collected()
 
     def convert_live_to_collected(self):
-        print("hit1!")
         for k in range(len(self.live_list) - 1, -1, -1):
-            print("hit2!")
             if self.live_list[k].collected:
                 self.collected_list.append(self.live_list[k])
-                print("hit2!")
                 del self.live_list[k]
+                break
 
-    def use_bonus(self): # TODO
-        pass
-
-
+    def use_bonus(self, lines): # TODO
+        if len(self.collected_list) > 0:
+            self.screen.fill((255, 255, 0))
+            lines.erase_all()
+            k = self.collected_list[0]
+            self.collected_list.remove(k)
 
 
 class NewBonus:
@@ -265,7 +265,6 @@ class NewBonus:
 
     def collected(self, ball):
         hitbox = pygame.Rect(self.x, self.y, self.side_length, self.side_length)
-        print(hitbox.collidepoint(ball.x, ball.y), "hit!")
         return hitbox.collidepoint(ball.x, ball.y)
         #ballbox = pygame.Rect(ball.x - ball.radius, ball.y - ball.radius, ball.diameter, ball.diameter)
         #return hitbox.colliderect(ballbox) # TODO : rect
@@ -280,6 +279,7 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
     game_over_image = pygame.image.load("gameover.png")
     wait_to_start = True
     is_game_over = False
+    time_of_bonus = 0
     level = 1
 
     # construct opening screen (lasers, ball, score and leader board)
@@ -294,6 +294,7 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
     lines = Lines()
     bonus_list = BonusList(screen)
     bonus_list.draw_inventory()
+    bonus_list.draw()
 
 
     # wait for mouse click to start game
@@ -316,6 +317,13 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+
+            # Use the first bonus you have in the list
+            pressed_keys = pygame.key.get_pressed()
+            if pressed_keys[pygame.K_SPACE] and (time.time() - time_of_bonus > 1):
+                bonus_list.use_bonus(lines)
+                time_of_bonus = time.time()
+                break
 
         # Draw these before game is over
         scoreboard.draw()
@@ -369,17 +377,11 @@ def game_loop(screen, scoreboard, leaderboard, clock, font):
             particle.draw()
             lines.add(particle)
 
-        bonus_list.check_hit()  # TODO: convert
+        bonus_list.check_for_hit(ball)
         lines.hit(ball, level)
         lines.move()
         lines.evaporate_particle(top_laser, bot_laser)
 
-        # Use the first bonus you have in the list
-        pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[pygame.K_SPACE]:
-            eraser = Eraser(screen, lines)
-            eraser.draw()
-            eraser.erase_all()
 
         ball.move()
         bonus_list.move()

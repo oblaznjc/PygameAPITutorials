@@ -203,14 +203,47 @@ class Eraser:
         self.lines.erase_all()
 
 
-class Freeze:
+class BonusList:
     def __init__(self, screen):
+        self.screen = screen
+        self.live_list = []
+        self.collected_list = [0, 1]
+        self.color = (255, 255, 0)
+        self.bar_width = self.screen.get_width() // 5
+
+    def add_live(self, bonus):
+        self.live_list.append(bonus)
+
+    def move(self):
+        for bonus in self.live_list:
+            bonus.move()
+
+    def draw(self):
+        for bonus in self.live_list:
+            bonus.draw()
+
+    def draw_inventory(self):
+        for k in range(len(self.collected_list)):
+            pygame.draw.rect(self.screen, self.color, (k * self.bar_width, 0, self.bar_width - 1, 18))
+
+    def check_hit(self):
+        for bonus in self.live_list:
+            bonus.collected
+
+
+    def convert_live_to_collected(self):
+        print("hit1!")
+        for k in range(len(self.live_list) - 1, -1, -1):
+            print("hit2!")
+            if self.live_list[k].collected:
+                self.collected_list.append(self.live_list[k])
+                print("hit2!")
+                del self.live_list[k]
+
+    def use_bonus(self): # TODO
         pass
 
 
-class Reverse:
-    def __init__(self):
-        pass
 
 
 class NewBonus:
@@ -219,23 +252,30 @@ class NewBonus:
         self.color = (255, 255, 0)
         self.side_length = 50
         self.x = random.randrange(0, self.screen.get_width())
-        self.y = 0
+        self.y = screen.get_height()
+        self.speed_divider = 2
+        self.move_counter = 0
 
     def draw(self):
         pygame.draw.rect(self.screen, self.color, (self.x, self.y, self.side_length, self.side_length))
 
     def move(self):
-        self.y += 1
+        if self.move_counter % self.speed_divider == 0:
+            self.y -= 1
+
+    def collected(self, ball):
+        hitbox = pygame.Rect(self.x, self.y, self.side_length, self.side_length)
+        print(hitbox.collidepoint(ball.x, ball.y), "hit!")
+        return hitbox.collidepoint(ball.x, ball.y)
+        #ballbox = pygame.Rect(ball.x - ball.radius, ball.y - ball.radius, ball.diameter, ball.diameter)
+        #return hitbox.colliderect(ballbox) # TODO : rect
 
 
-    def eraser(self):
-        pass
-
-class Inventory:
-    pass
 
 
-def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
+
+
+def game_loop(screen, scoreboard, leaderboard, clock, font):
     # load images and booleans
     game_over_image = pygame.image.load("gameover.png")
     wait_to_start = True
@@ -252,6 +292,9 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
     top_laser.draw()
     bot_laser.draw()
     lines = Lines()
+    bonus_list = BonusList(screen)
+    bonus_list.draw_inventory()
+
 
     # wait for mouse click to start game
     while wait_to_start:
@@ -274,8 +317,6 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        #TODO: implement incremental level up
-
         # Draw these before game is over
         scoreboard.draw()
         leaderboard.draw()
@@ -285,7 +326,9 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
         bot_laser.draw()
         pen = Pen(screen)
         pen.draw()
-        bonus.move()
+        bonus_list.draw()
+        bonus_list.draw_inventory()
+
 
         if is_game_over:
             # draw game over image
@@ -302,7 +345,6 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
             if scoreboard.score == leaderboard.high_score():  # TODO: flashing
                 screen.blit(high_score_image, (screen.get_width() // 2 - high_score_image.get_width() // 2,
                                                screen.get_height() // 2 - high_score_image.get_height() // 2 - 180))
-                pygame.display.flip()
 
             # check for restart click
             pressed_keys = pygame.mouse.get_pressed()
@@ -313,10 +355,12 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
                                  game_over_image.get_height())
             if pressed_keys == (1, 0, 0) and hitbox.collidepoint(position_x, position_y):
                 screen.fill((0, 0, 0))
-                game_loop(screen, scoreboard, leaderboard, clock, font, inventory)
+                game_loop(screen, scoreboard, leaderboard, clock, font)
 
             pygame.display.update()
             continue
+
+        scoreboard.update()
 
         # construct line when mouse clicked
         pressed_keys = pygame.mouse.get_pressed()
@@ -325,6 +369,7 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
             particle.draw()
             lines.add(particle)
 
+        bonus_list.check_hit()  # TODO: convert
         lines.hit(ball, level)
         lines.move()
         lines.evaporate_particle(top_laser, bot_laser)
@@ -337,13 +382,15 @@ def game_loop(screen, scoreboard, leaderboard, clock, font, inventory):
             eraser.erase_all()
 
         ball.move()
-        scoreboard.update()
+        bonus_list.move()
 
         # check for level up
-        new_level = math.ceil(scoreboard.score / 5)
-        if level != new_level:
-            bonus.draw()
+        new_level = math.ceil(scoreboard.score / 2) #TODO: fix time
+        if level < new_level:
+            bonus = NewBonus(screen)
+            bonus_list.add_live(bonus)
             level = new_level
+            print("newlevel")
 
         # Check for game over
         if top_laser.top_hit(ball) or bot_laser.bot_hit(ball):
@@ -402,7 +449,7 @@ def main():
 
         pygame.display.update()
 
-    game_loop(screen, scoreboard, leaderboard, clock, font, inventory)
+    game_loop(screen, scoreboard, leaderboard, clock, font)
 
 
 main()

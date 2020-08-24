@@ -406,7 +406,7 @@ def main():
     font = pygame.font.SysFont('bahnschrift', 90)
     pygame.mixer.music.load('background.wav')
     pygame.mixer.music.play(999)
-    game_over_image = pygame.image.load("newgame.png")
+    new_game_image = pygame.image.load("newgame.png")
     lines = Lines()
 
     # draw opening page
@@ -440,16 +440,16 @@ def main():
             lines.add(particle)
 
         # draw image and check for start game click
-        screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
-                                      screen.get_height() // 2 - game_over_image.get_height() // 2))
+        screen.blit(new_game_image, (screen.get_width() // 2 - new_game_image.get_width() // 2,
+                                      screen.get_height() // 2 - new_game_image.get_height() // 2))
 
         pressed_keys = pygame.mouse.get_pressed()
         position_x, position_y = pygame.mouse.get_pos()
 
-        hitbox = pygame.Rect(screen.get_width() // 2 - game_over_image.get_width() // 2,
-                             screen.get_height() // 2 - game_over_image.get_height() // 2,
-                             game_over_image.get_width(),
-                             game_over_image.get_height())
+        hitbox = pygame.Rect(screen.get_width() // 2 - new_game_image.get_width() // 2,
+                             screen.get_height() // 2 - new_game_image.get_height() // 2,
+                             new_game_image.get_width(),
+                             new_game_image.get_height())
         if pressed_keys == (1, 0, 0) and hitbox.collidepoint(position_x, position_y):
             screen.fill((0, 0, 0))
             break

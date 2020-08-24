@@ -24,7 +24,7 @@ class Ball:
         self.angle = 270
         self.radius = 30
         self.diameter = self.radius * 2
-        self.color = (0, 255, 255) # green
+        self.color = (0, 255, 255)  # green
         self.speed_x = 0
         self.speed_y = 0  # down 1
         self.last_hit_time = 0
@@ -44,7 +44,7 @@ class Ball:
         if self.x < 0 or self.x > self.screen.get_width():
             self.wrap()
 
-    def bounce_off(self, particle, level):
+    def bounce_off(self, particle):
         unit_normal_vector = unit_normal_vector_between(self, particle)
         x, y = unit_normal_vector
         self.speed_x, self.speed_y = round(x * self.speed), round(y * self.speed)
@@ -159,7 +159,7 @@ class Lines:
     def hit(self, ball, level):
         for particle in self.list:
             if ball.hit(particle):
-                ball.bounce_off(particle, level)
+                ball.bounce_off(particle)
 
     def evaporate_particle(self, top_laser, bot_laser):
         for k in range(len(self.list) - 1, -1, -1):
@@ -173,7 +173,6 @@ class Lines:
 class Pen:
     """ moves a draw dot on the screen, following the mouse"""
     def __init__(self, screen, radius=5):
-        pos = pygame.mouse.get_pos()
         self.x, self.y = pygame.mouse.get_pos()
         self.screen = screen
         self.color = (255, 0, 255)
@@ -291,7 +290,6 @@ def game_loop(screen, leaderboard, clock, font):
     bonus_list.draw_inventory()
     bonus_list.draw()
 
-
     # wait for mouse click to start game
     while wait_to_start:
         for event in pygame.event.get():
@@ -333,7 +331,6 @@ def game_loop(screen, leaderboard, clock, font):
         bonus_list.draw()
         bonus_list.draw_inventory()
 
-
         if is_game_over:
             # draw game over image
             screen.blit(game_over_image, (screen.get_width() // 2 - game_over_image.get_width() // 2,
@@ -373,12 +370,13 @@ def game_loop(screen, leaderboard, clock, font):
             particle.draw()
             lines.add(particle)
 
+        # interactions between bonus-ball, line-ball, and line-laser
         bonus_list.check_for_hit(ball)
         lines.hit(ball, level)
-        lines.move()
         lines.evaporate_particle(top_laser, bot_laser)
 
-
+        # move lines, ball, and bonuses
+        lines.move()
         ball.move()
         bonus_list.move()
 
